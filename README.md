@@ -22,6 +22,29 @@
 - Sử dụng thư viện `tkinter` để tạo giao diện người dùng và vẽ bàn cờ.
 - Có một lớp `ChessboardApp` để quản lý toàn bộ trò chơi và các phương thức để xử lý sự kiện nhấp chuột và logic trò chơi.
 - Điểm mạnh và yếu của mỗi nước đi được tính bằng thuật toán đánh giá điểm.
+### Đoạn code này sử dụng một số thuật toán và kỹ thuật sau:
+
+Thuật toán Minimax:
+
+Thuật toán Minimax được sử dụng trong hàm best_move để đánh giá và chọn ra nước đi tốt nhất cho máy tính.
+Thuật toán này đánh giá tất cả các nước đi có thể từ trạng thái hiện tại của bàn cờ và chọn ra nước đi tối ưu nhất dựa trên điểm số ước tính của trạng thái tương lai.
+
+Alpha-Beta Pruning:
+
+Mặc dù không được triển khai trực tiếp trong code, tuy nhiên, cách triển khai thuật toán Minimax trong best_move có thể được cải thiện bằng cách áp dụng Alpha-Beta Pruning để cắt bỏ các nhánh không cần thiết, từ đó cải thiện hiệu suất của thuật toán.
+
+Heuristic Evaluation:
+
+Hàm stupid_score được sử dụng để đánh giá tính hợp lý của mỗi nước đi từ góc độ của máy tính.
+Thuật toán này đánh giá các nước đi bằng cách tính điểm dựa trên lợi thế của mỗi nước đi cho máy tính. Điểm số này được tính toán dựa trên số lượng quân cờ của máy tính và người chơi, cũng như các điểm số có thể dẫn đến chiến thắng trong tương lai.
+Tìm kiếm trạng thái chiến thắng:
+
+Hàm winning_situation được sử dụng để xác định các trạng thái có thể dẫn đến chiến thắng trong tương lai.
+Thuật toán này đánh giá các trạng thái trên bàn cờ và xác định xem máy tính có thể chiến thắng trong tương lai dựa trên việc có được một dãy quân cờ liên tiếp nào đó.
+Kiểm tra thắng/thua/hòa:
+
+Hàm is_win được sử dụng để kiểm tra xem trò chơi đã kết thúc chưa và nếu đã kết thúc thì xác định kết quả (người chơi thắng, máy tính thắng hoặc hòa).
+Thuật toán này kiểm tra trạng thái hiện tại của bàn cờ và xác định kết quả dựa trên việc có một người chơi hoặc máy tính chiến thắng hoặc bàn cờ đã đầy.
 
 ### Điều Chỉnh:
 - Bạn có thể tinh chỉnh kích thước của bàn cờ bằng cách thay đổi giá trị của biến `ROWS_COLS` và `PIXEL` trong phương thức `__init__` của lớp `ChessboardApp`.
