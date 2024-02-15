@@ -1,51 +1,97 @@
 ﻿import tkinter as tk  # Import thư viện tkinter
 import random
 import time
+import sys
+import tkinter.messagebox as messagebox
 
 
 class ChessboardApp:
-    move_history = []
+    #biến cho biến trạng thái thắng/thua
     win = False
+    #rows = cols, số hàng và số cột của bàn cờ
+    ROWS_COLS = 100 
+    #chiều dài của một ô
+    PIXEL = 40
      # Khởi tạo mảng 2 chiều kích thước 25x25
-    # 1 là quan O tuong trun cho nguoi choi
+    # 1 là quan O tuong trung cho nguoi choi
     # 2 la quan x tuong trung cho may
     # 0 la o chua duoc danh
     board = [[0 for _ in range(25)] for _ in range(25)]
+    
     def __init__(self, root):
-        ROWS_COLS = 100
-        PIXEL = 40
 
         self.root = root
-        self.root.title("FiveinARow")  #Đặt tiêu đề cho cửa sổ gốc
-        self.root.geometry("1000x1000")  # Đặt kích thước cửa sổ gốc là 1000x1000 pixel
+        #Đặt tiêu đề cho cửa sổ gốc
+        self.root.title("FiveinARow")
+        # Đặt kích thước cửa sổ gốc là 1000x1000 pixel
+        self.root.geometry("1000x1000")  
 
-        self.canvas = tk.Canvas(root, width=1000, height=1000, bg="White")  # Tạo một canvas với kích thước 400x400 pixel và màu nền là "Dodger blue"
+        # Tạo một canvas với kích thước 1000x1000 pixel và màu nền là "Dodger blue"
+        self.canvas = tk.Canvas(root, width=1000, height=1000, bg="White")  
         self.canvas.pack()
 
-        self.draw_chessboard(PIXEL, ROWS_COLS)  # Gọi hàm vẽ bàn cờ với kích thước ô là 40 pixel và 16x20 ô
+        # Gọi hàm vẽ bàn cờ với kích thước ô là 40 pixel và 25x25 
+        self.draw_chessboard(self.PIXEL, self.ROWS_COLS)  
         
-        self.canvas.bind("<Button-1>", self.handle_click) # Sửa cách gọi hàm handle_click # Sửa cách gọi hàm handle_click
-     
+        
+ #Check the status of the chess board
+
+    #kiểm tra tọa độ có nằm trong bàn cờ không
     def is_in(self, board, y, x):
         return 0 <= y < len(self.board) and 0 <= x < len(self.board)
+    
+    #kiểm tra bàn cờ có rỗng không
+    def is_empty(self, array):
+      # Duyệt qua tất cả các mảng con trong mảng cha
+      for subarray in array:
+        # Kiểm tra xem tất cả các phần tử trong mảng con có bằng 0 hay không
+        if not all(element == 0 for element in subarray):
+          # Nếu có phần tử khác 0, trả về False
+          return False
+      # Nếu không có phần tử khác 0, trả về True
+      return True
+
+    #kiếm tra trạng thái bàn cờ (X thắng/ O thắng/ đang tiếp tục chơi)
+    def is_win(self, board):
+        #
+        black_O = self.score_of_col(board, 1) 
+        white_X = self.score_of_col(board, 2)
+
+        self.sum_sumcol_values(black_O)
+        self.sum_sumcol_values(white_X)
+
+        if 5 in black_O and black_O[5] == 1:
+            #self.highlight_winning_row(board, black_O, 1)
+            return 'O won'
+        elif 5 in white_X and white_X[5] == 1:
+            #self.highlight_winning_row(board, white_X, 2)
+            return 'X won'
+
+        if sum(black_O.values()) == black_O[-1] and sum(white_X.values()) == white_X[-1] or self.possible_moves(board) == []:
+            return 'Draw'
+        return 'continue playing'
+
+    def reset_board_zero(self,board):
+        for row in board:
+            for i in range(len(board)):
+                row[i] = 0 
 
 #Graphic 
-    def handle_click(self, event):
+    def handle_click(self, event):                              
         x = event.x
-        y = event.y
-        color = "red"  
-        #print("Mouse clicked at ({}, {})".format(x, y))
+        y = event.y 
         x,y = self.getindexposition(x,y)
-        #print(x," ",y)
+
         self.draw_circle(18,"blue",x*40+20,y*40+20)
         self.board[y][x]=1
         x_next, y_next = self.best_move(self.board,2)
         self.board[x_next][y_next]=2
-        #print("x y next", x_next," ",y_next)
         self.draw_cross(18,'red',y_next*40+20,x_next*40+20)
-        #self.print_2d_array(self.board)
-        print(self.is_win(self.board))
         
+        winner = self.is_win(self.board)
+        if winner != 'continue playing':
+            self.handle_game_result(winner)
+               
     def draw_chessboard(self, size, n):
         for i in range(n):
             for j in range(n):
@@ -68,42 +114,33 @@ class ChessboardApp:
     def draw_circle(self, size,color, x, y):
     # Draw a black circle with the given parameters
      self.canvas.create_oval(x - size, y - size, x + size, y + size, outline="black", width = 3)
-    def print_2d_array(self, board):
-        for row in board:
-            for element in row:
-                print(element, end=" ")  # In phần tử của mỗi hàng cách nhau bằng dấu cách
-            print()  # In một dòng mới sau khi hoàn thành việc in mỗi hàng
 
     def getindexposition(self, x, y): #chuyen doi toa do click chuot sang toa do tren o co
         index_x = x // 40
         index_y = y // 40
         return index_x, index_y
-
-    def is_empty(self, array):
-      # Duyệt qua tất cả các mảng con trong mảng cha
-      for subarray in array:
-        # Kiểm tra xem tất cả các phần tử trong mảng con có bằng 0 hay không
-        if not all(element == 0 for element in subarray):
-          # Nếu có phần tử khác 0, trả về False
-          return False
-      # Nếu không có phần tử khác 0, trả về True
-      return True
-
-    def is_win(self, board):
-       black_O = self.score_of_col(board,1)
-       white_X = self.score_of_col(board,2)
     
-       self.sum_sumcol_values(black_O)
-       self.sum_sumcol_values(white_X)
-    
-       if 5 in black_O and black_O[5] == 1:
-            return 'Black won'
-       elif 5 in white_X and white_X[5] == 1:
-            return 'White won'
+    def refresh_graphics(self):
+        self.canvas.delete("all")  # Xóa tất cả các hình ảnh trên canvas
+        self.draw_chessboard(40, 25)  # Vẽ lại bàn cờ với kích thước ô là 40 và 25 ô
         
-       if sum(black_O.values()) == black_O[-1] and sum(white_X.values()) == white_X[-1] or self.possible_moves(board)==[]:
-            return 'Draw'
-       return 'continue playing'
+    def handle_game_result(self, winner):
+        if winner == 'O won':
+            messagebox.showinfo("Game Over", "Người chơi O đã chiến thắng!")
+        elif winner == 'X won':
+            messagebox.showinfo("Game Over", "Người chơi X đã chiến thắng!")
+        elif winner == 'Draw':
+            messagebox.showinfo("Game Over", "Trận đấu kết thúc với kết quả hòa!")
+        else:
+            return
+
+        play_again = messagebox.askyesno("Chơi lại?", "Bạn có muốn chơi lại từ đầu không?")
+        if play_again:
+            self.reset_board_zero(self.board)
+            self.refresh_graphics()
+        else:
+            sys.exit()
+           
    
    #AI
     
@@ -120,6 +157,7 @@ class ChessboardApp:
             xf -= dx
         
         return yf,xf
+    
     def score_ready(self, scorecol):
         '''
         Khởi tạo hệ thống điểm
@@ -145,6 +183,7 @@ class ChessboardApp:
                 sumcol[5] = int(1 in sumcol[5].values())
             else:
                 sumcol[key] = sum(sumcol[key].values())
+                
     def score_of_list(self,lis,col):
     
         blank = lis.count(0)
@@ -156,6 +195,7 @@ class ChessboardApp:
             return 0
         else:
             return filled
+        
     def row_to_list(self,board,y,x,dy,dx,yf,xf):
         '''
         trả về list của y,x từ yf,xf
@@ -167,6 +207,7 @@ class ChessboardApp:
             y += dy
             x += dx
         return row
+    
     def score_of_row(self,board,cordi,dy,dx,cordf,col):
         '''
         trả về một list với mỗi phần tử đại diện cho số điểm của 5 khối
@@ -181,6 +222,7 @@ class ChessboardApp:
             colscores.append(score)
     
         return colscores
+    
     def score_of_col(self,board,col):
         '''
         tính toán điểm số mỗi hướng của column dùng cho is_win;
@@ -200,6 +242,7 @@ class ChessboardApp:
                 scores[(-1,1)].extend(self.score_of_row(board,(f -1 , start + 1), -1,1,(start+1,f-1), col))
             
         return self.score_ready(scores)
+    
     def score_of_col_one(self, board,col,y,x):
         '''
         trả lại điểm số của column trong y,x theo 4 hướng,
@@ -217,6 +260,7 @@ class ChessboardApp:
         scores[(-1,1)].extend(self.score_of_row(board,self.march(board,y,x,-1,1,4), 1,-1,self.march(board,y,x,1,-1,4), col))
     
         return self.score_ready(scores)
+    
     def possible_moves(self,board):  
         '''
         khởi tạo danh sách tọa độ có thể có tại danh giới các nơi đã đánh phạm vi 3 đơn vị
@@ -244,6 +288,7 @@ class ChessboardApp:
                     if move not in taken and move not in cord:
                         cord[move]=False
         return cord
+    
     def TF34score(self, score3,score4):
         '''
         trả lại trường hợp chắc chắn có thể thắng(4 ô liên tiếp)
@@ -341,8 +386,5 @@ class ChessboardApp:
 if __name__ == "__main__":
     root = tk.Tk()  # Khởi tạo cửa sổ gốc
     app = ChessboardApp(root)  # Tạo đối tượng ChessboardApp
+    app.canvas.bind("<Button-1>", app.handle_click)
     root.mainloop()  # Bắt đầu vòng lặp chính của ứng dụng
-
-    
-    
-
